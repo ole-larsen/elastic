@@ -7,7 +7,6 @@ services:
       context: ./.docker/build/setup/.
       args:
         STACK_VERSION: ${STACK_VERSION}
-        NODE_ENV: 'production'
     volumes:
       - certificates:/usr/share/elasticsearch/config/certs
     user: "0"
@@ -76,7 +75,6 @@ services:
       context: ./.docker/build/setup/.
       args:
         STACK_VERSION: ${STACK_VERSION}
-        NODE_ENV: 'production'
     volumes:
       - certificates:/usr/share/elasticsearch/config/certs:rw
     user: "0"
@@ -112,8 +110,7 @@ services:
     build:
       context: ./.docker/build/elasticsearch/.
       args:
-        STACK_VERSION: ${STACK_VERSION}
-        NODE_ENV: 'production'
+        ELASTIC_PORT: ${ELASTIC_PORT}
     labels:
       co.elastic.logs/module: elasticsearch
     volumes:
@@ -173,7 +170,7 @@ services:
       context: ./.docker/build/kibana/.
       args:
         STACK_VERSION: ${STACK_VERSION}
-        NODE_ENV: 'production'
+        KIBANA_PORT: ${KIBANA_PORT}
     labels:
       co.elastic.logs/module: kibana
     volumes:
