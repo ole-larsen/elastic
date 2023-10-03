@@ -1,0 +1,241 @@
+version: '3.7'
+services:
+  elastic-setup:
+    container_name: elastic-setup
+    image: olelarsen/elastic-setup
+    build:
+      context: ./.docker/build/setup/.
+      args:
+        STACK_VERSION: ${STACK_VERSION}
+        NODE_ENV: 'production'
+    volumes:
+      - certificates:/usr/share/elasticsearch/config/certs
+    user: "0"
+    command: >
+      bash -c '
+        if [ ! -d "config/certs/ca" ] 
+        then
+          echo "Creating CA";
+          bin/elasticsearch-certutil ca --silent --pem -out config/certs/ca.zip;
+          unzip config/certs/ca.zip -d config/certs;
+          rm -rf config/certs/ca.zip;
+        else
+          ls -la config/certs/ca;
+        fi;
+
+        if [ ! -d "config/certs/es01" ] 
+        then
+          echo "Creating certificates es01";
+          echo -ne \
+          "instances:\n"\
+          "  - name: es01\n"\
+          "    dns:\n"\
+          "      - es01\n"\
+          "    ip:\n"\
+          "      - 127.0.0.1\n"\
+          > config/certs/instances.yml;
+          bin/elasticsearch-certutil cert --silent --pem -out config/certs/certs.zip --in config/certs/instances.yml --ca-cert config/certs/ca/ca.crt --ca-key config/certs/ca/ca.key;
+          unzip config/certs/certs.zip -d config/certs;
+          rm -rf config/certs/certs.zip;
+          rm config/certs/instances.yml;
+        else
+          ls -la config/certs/es01;
+        fi;
+
+        if [ ! -d "config/certs/kibana" ] 
+        then
+          echo "Creating certificates kibana";
+          echo -ne \
+          "instances:\n"\
+          "  - name: kibana\n"\
+          "    dns:\n"\
+          "      - kibana\n"\
+          "    ip:\n"\
+          "      - 127.0.0.1\n"\
+          > config/certs/instances.yml;
+          bin/elasticsearch-certutil cert --silent --pem -out config/certs/certs.zip --in config/certs/instances.yml --ca-cert config/certs/ca/ca.crt --ca-key config/certs/ca/ca.key;
+          unzip config/certs/certs.zip -d config/certs;
+          rm -rf config/certs/certs.zip;
+          rm config/certs/instances.yml;
+        else
+          ls -la config/certs/kibana;
+        fi;
+        echo "done";
+      '
+    networks:
+      - elastic-web
+    healthcheck:
+      test: [ "CMD-SHELL", "[ -f config/certs/es01/es01.crt ]" ]
+      interval: 1s
+      timeout: 5s
+      retries: 120
+  elastic-credentials:
+    container_name: elastic-credentials
+    image: olelarsen/elastic-setup
+    build:
+      context: ./.docker/build/setup/.
+      args:
+        STACK_VERSION: ${STACK_VERSION}
+        NODE_ENV: 'production'
+    volumes:
+      - certificates:/usr/share/elasticsearch/config/certs:rw
+    user: "0"
+    command: >
+      bash -c '
+        echo "Setting file permissions";
+        if [ x${ELASTIC_PASSWORD} == x ]; then
+          echo "Set the ELASTIC_PASSWORD environment variable in the .env file";
+          exit 1;
+        fi;
+        if [ x${KIBANA_PASSWORD} == x ]; then
+          echo "Set the KIBANA_PASSWORD environment variable in the .env file";
+          exit 1;
+        fi;
+        echo "Waiting for Elasticsearch availability";
+        until curl -s --cacert config/certs/ca/ca.crt https://es01:${ELASTIC_PORT} | grep -q "missing authentication credentials"; do sleep 30; done;
+        echo "Setting kibana_system password";
+        until curl -s -X POST --cacert config/certs/ca/ca.crt -u "elastic:${ELASTIC_PASSWORD}" -H "Content-Type: application/json" https://es01:${ELASTIC_PORT}/_security/user/kibana_system/_password -d "{\"password\":\"${KIBANA_PASSWORD}\"}" | grep -q "^{}"; do sleep 10; done;
+        echo "All done!";
+      '
+    networks:
+      - elastic-web
+    healthcheck:
+      test: [ "CMD-SHELL", "[ -f config/certs/es01/es01.crt ]" ]
+      interval: 1s
+      timeout: 5s
+      retries: 120
+    depends_on:
+      - es01
+  es01:
+    container_name: es01
+    image: olelarsen/elasticsearch
+    build:
+      context: ./.docker/build/elasticsearch/.
+      args:
+        STACK_VERSION: ${STACK_VERSION}
+        NODE_ENV: 'production'
+    labels:
+      co.elastic.logs/module: elasticsearch
+    volumes:
+      - elasticlogs:/usr/share/elasticsearch/logs
+      - certificates:/usr/share/elasticsearch/config/certs
+      - elasticsearch:/usr/share/elasticsearch/data
+    restart: always
+    ports:
+      - "${ELASTIC_PORT}:9200"
+    networks:
+      - elastic-web
+    environment:
+      - node.name=es01
+      - cluster.name=${CLUSTER_NAME}
+      - discovery.type=single-node
+      - bootstrap.memory_lock=true
+      - ES_JAVA_OPTS=-Xms512m -Xmx512m
+      - ELASTIC_PASSWORD=${ELASTIC_PASSWORD}
+      - xpack.security.enrollment.enabled=true
+      - xpack.security.enabled=true
+      - xpack.security.http.ssl.enabled=true
+      - xpack.security.http.ssl.key=certs/es01/es01.key
+      - xpack.security.http.ssl.certificate=certs/es01/es01.crt
+      - xpack.security.http.ssl.certificate_authorities=certs/ca/ca.crt
+      - xpack.security.http.ssl.verification_mode=certificate
+      - xpack.security.transport.ssl.enabled=true
+      - xpack.security.transport.ssl.key=certs/es01/es01.key
+      - xpack.security.transport.ssl.certificate=certs/es01/es01.crt
+      - xpack.security.transport.ssl.certificate_authorities=certs/ca/ca.crt
+      - xpack.security.transport.ssl.verification_mode=certificate
+      - xpack.license.self_generated.type=${LICENSE}
+      - http.host=0.0.0.0
+      - transport.host=0.0.0.0
+    mem_limit: ${ES_MEM_LIMIT}
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "curl -s --cacert config/certs/ca/ca.crt https://es01:${ELASTIC_PORT} | grep -q 'missing authentication credentials'"
+        ]
+      interval: 10s
+      timeout: 10s
+      retries: 120
+    depends_on:
+      - elastic-setup
+  kibana:
+    container_name: kibana
+    depends_on:
+      es01:
+        condition: service_healthy
+    image: sheira/kibana
+    build:
+      context: ./.docker/build/kibana/.
+      args:
+        STACK_VERSION: ${STACK_VERSION}
+        NODE_ENV: 'production'
+    labels:
+      co.elastic.logs/module: kibana
+    volumes:
+      - kibanalogs:/usr/share/kibana/logs
+      - certificates:/usr/share/kibana/config/certs:rw
+      - kibana:/usr/share/kibana/data
+    networks:
+      - elastic-web
+    ports:
+      - "${KIBANA_PORT}:5601"
+    environment:
+      - SERVERNAME=kibana
+      - ELASTICSEARCH_HOSTS=https://es01:${ELASTIC_PORT}
+      - ELASTICSEARCH_USERNAME=kibana_system
+      - ELASTICSEARCH_PASSWORD=${ELASTIC_PASSWORD}
+      - ELASTICSEARCH_SSL_CERTIFICATEAUTHORITIES=config/certs/ca/ca.crt
+      - XPACK_SECURITY_ENCRYPTIONKEY=${ENCRYPTION_KEY}
+      - XPACK_ENCRYPTEDSAVEDOBJECTS_ENCRYPTIONKEY=${ENCRYPTION_KEY}
+      - XPACK_REPORTING_ENCRYPTIONKEY=${ENCRYPTION_KEY}
+      - xpack.reporting.roles.enabled=false
+    mem_limit: ${KB_MEM_LIMIT}
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "curl -s -I http://kibana:${KIBANA_PORT} | grep -q 'HTTP/1.1 302 Found'"
+        ]
+      interval: 10s
+      timeout: 10s
+      retries: 120
+volumes:
+  certificates:
+    driver: local # Define the driver and options under the volume name
+    driver_opts:
+      type: none
+      device: ./.docker/certs
+      o: bind
+  elasticsearch:
+    driver: local # Define the driver and options under the volume name
+    driver_opts:
+      type: none
+      device: ./.docker/data/elasticsearch
+      o: bind
+  kibana:
+    driver: local # Define the driver and options under the volume name
+    driver_opts:
+      type: none
+      device: ./.docker/data/kibana
+      o: bind
+  elasticlogs:
+    driver: local # Define the driver and options under the volume name
+    driver_opts:
+      type: none
+      device: ./.docker/logs/elasticsearch
+      o: bind
+  kibanalogs:
+    driver: local # Define the driver and options under the volume name
+    driver_opts:
+      type: none
+      device: ./.docker/logs/kibana
+      o: bind
+networks:
+  elastic-web:
+    name: elastic-web
+    driver: bridge
