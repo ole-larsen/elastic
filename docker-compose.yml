@@ -1,4 +1,3 @@
-version: '3.7'
 services:
   elastic-setup:
     container_name: elastic-setup
@@ -39,6 +38,25 @@ services:
           rm config/certs/instances.yml;
         else
           ls -la config/certs/es01;
+        fi;
+
+        if [ ! -d "config/certs/es02" ] 
+        then
+          echo "Creating certificates es02";
+          echo -ne \
+          "instances:\n"\
+          "  - name: es02\n"\
+          "    dns:\n"\
+          "      - es02\n"\
+          "    ip:\n"\
+          "      - 127.0.0.1\n"\
+          > config/certs/instances.yml;
+          bin/elasticsearch-certutil cert --silent --pem -out config/certs/certs.zip --in config/certs/instances.yml --ca-cert config/certs/ca/ca.crt --ca-key config/certs/ca/ca.key;
+          unzip config/certs/certs.zip -d config/certs;
+          rm -rf config/certs/certs.zip;
+          rm config/certs/instances.yml;
+        else
+          ls -la config/certs/es02;
         fi;
 
         if [ ! -d "config/certs/kibana" ] 
@@ -93,6 +111,9 @@ services:
         until curl -s --cacert config/certs/ca/ca.crt https://es01:${ELASTIC_PORT} | grep -q "missing authentication credentials"; do sleep 30; done;
         echo "Setting kibana_system password";
         until curl -s -X POST --cacert config/certs/ca/ca.crt -u "elastic:${ELASTIC_PASSWORD}" -H "Content-Type: application/json" https://es01:${ELASTIC_PORT}/_security/user/kibana_system/_password -d "{\"password\":\"${KIBANA_PASSWORD}\"}" | grep -q "^{}"; do sleep 10; done;
+        
+        echo "Waiting for Elasticsearch availability";
+        until curl -s --cacert config/certs/ca/ca.crt https://es02:${ELASTIC2_PORT} | grep -q "missing authentication credentials"; do sleep 30; done;
         echo "All done!";
       '
     networks:
@@ -104,6 +125,7 @@ services:
       retries: 120
     depends_on:
       - es01
+      - es02
   es01:
     container_name: es01
     image: olelarsen/elasticsearch
@@ -154,6 +176,62 @@ services:
         [
           "CMD-SHELL",
           "curl -s --cacert config/certs/ca/ca.crt https://es01:${ELASTIC_PORT} | grep -q 'missing authentication credentials'"
+        ]
+      interval: 10s
+      timeout: 10s
+      retries: 120
+    depends_on:
+      - elastic-setup
+  es02:
+    container_name: es02
+    image: olelarsen/elasticsearch
+    build:
+      context: ./.docker/build/elasticsearch/.
+      args:
+        ELASTIC_PORT: ${ELASTIC2_PORT}
+    labels:
+      co.elastic.logs/module: elasticsearch
+    volumes:
+      - elasticlogs:/usr/share/elasticsearch/logs
+      - certificates:/usr/share/elasticsearch/config/certs
+      - elasticsearch:/usr/share/elasticsearch/data
+    restart: always
+    ports:
+      - "${ELASTIC2_PORT}:9200"
+    networks:
+      - elastic-web
+    environment:
+      - node.name=es01
+      - cluster.name=${CLUSTER_NAME}
+      - discovery.type=single-node
+      - bootstrap.memory_lock=true
+      - ES_JAVA_OPTS=-Xms512m -Xmx512m
+      - ELASTIC_PASSWORD=${ELASTIC_PASSWORD}
+      - xpack.security.enrollment.enabled=true
+      - xpack.security.enabled=true
+      - xpack.security.http.ssl.enabled=true
+      - xpack.security.http.ssl.key=certs/es02/es02.key
+      - xpack.security.http.ssl.certificate=certs/es02/es02.crt
+      - xpack.security.http.ssl.certificate_authorities=certs/ca/ca.crt
+      - xpack.security.http.ssl.verification_mode=certificate
+      - xpack.security.transport.ssl.enabled=true
+      - xpack.security.transport.ssl.key=certs/es02/es02.key
+      - xpack.security.transport.ssl.certificate=certs/es02/es02.crt
+      - xpack.security.transport.ssl.certificate_authorities=certs/ca/ca.crt
+      - xpack.security.transport.ssl.verification_mode=certificate
+      - xpack.license.self_generated.type=${LICENSE}
+      - http.host=0.0.0.0
+      - transport.host=0.0.0.0
+    mem_limit: ${ES_MEM_LIMIT}
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "curl -s --cacert config/certs/ca/ca.crt https://es02:${ELASTIC2_PORT} | grep -q 'missing authentication credentials'"
         ]
       interval: 10s
       timeout: 10s
