@@ -1,6 +1,7 @@
 .env
 .docker/certs/ca/
 .docker/certs/es01/
+.docker/certs/es02/
 .docker/certs/kibana/
 
 .docker/data/elasticsearch/*
