@@ -136,9 +136,9 @@ services:
     labels:
       co.elastic.logs/module: elasticsearch
     volumes:
-      - elasticlogs:/usr/share/elasticsearch/logs
+      - es01logs:/usr/share/elasticsearch/logs
       - certificates:/usr/share/elasticsearch/config/certs
-      - elasticsearch:/usr/share/elasticsearch/data
+      - es01data:/usr/share/elasticsearch/data
     restart: always
     ports:
       - "${ELASTIC_PORT}:9200"
@@ -192,9 +192,9 @@ services:
     labels:
       co.elastic.logs/module: elasticsearch
     volumes:
-      - elasticlogs:/usr/share/elasticsearch/logs
+      - es02logs:/usr/share/elasticsearch/logs
       - certificates:/usr/share/elasticsearch/config/certs
-      - elasticsearch:/usr/share/elasticsearch/data
+      - es02data:/usr/share/elasticsearch/data
     restart: always
     ports:
       - "${ELASTIC2_PORT}:9200"
@@ -243,6 +243,8 @@ services:
     depends_on:
       es01:
         condition: service_healthy
+      es02:
+        condition: service_healthy  
     image: sheira/kibana
     build:
       context: ./.docker/build/kibana/.
@@ -286,23 +288,35 @@ volumes:
       type: none
       device: ./.docker/certs
       o: bind
-  elasticsearch:
+  es01data:
     driver: local # Define the driver and options under the volume name
     driver_opts:
       type: none
-      device: ./.docker/data/elasticsearch
+      device: ./.docker/data/elasticsearch/es01
+      o: bind
+  es01logs:
+    driver: local # Define the driver and options under the volume name
+    driver_opts:
+      type: none
+      device: ./.docker/logs/elasticsearch/es01
+      o: bind
+  es02data:
+    driver: local # Define the driver and options under the volume name
+    driver_opts:
+      type: none
+      device: ./.docker/data/elasticsearch/es02
+      o: bind
+  es02logs:
+    driver: local # Define the driver and options under the volume name
+    driver_opts:
+      type: none
+      device: ./.docker/logs/elasticsearch/es02
       o: bind
   kibana:
     driver: local # Define the driver and options under the volume name
     driver_opts:
       type: none
       device: ./.docker/data/kibana
-      o: bind
-  elasticlogs:
-    driver: local # Define the driver and options under the volume name
-    driver_opts:
-      type: none
-      device: ./.docker/logs/elasticsearch
       o: bind
   kibanalogs:
     driver: local # Define the driver and options under the volume name
