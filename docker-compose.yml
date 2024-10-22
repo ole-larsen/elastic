@@ -201,7 +201,7 @@ services:
     networks:
       - elastic-web
     environment:
-      - node.name=es01
+      - node.name=es02
       - cluster.name=${CLUSTER_NAME}
       - discovery.type=single-node
       - bootstrap.memory_lock=true
