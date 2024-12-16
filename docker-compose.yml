@@ -284,7 +284,7 @@ services:
     networks:
       - elastic-web
     ports:
-      - "${KIBANA_PORT2}:5601"
+      - "${KIBANA2_PORT}:5601"
     environment:
       - SERVERNAME=kibana
       - ELASTICSEARCH_HOSTS=https://es02:${ELASTIC_PORT}
