@@ -241,10 +241,8 @@ services:
   kibana:
     container_name: kibana
     depends_on:
-      es01:
-        condition: service_healthy
-      es02:
-        condition: service_healthy  
+      - es01
+      - es02  
     image: sheira/kibana
     build:
       context: ./.docker/build/kibana/.
@@ -263,7 +261,7 @@ services:
       - "${KIBANA_PORT}:5601"
     environment:
       - SERVERNAME=kibana
-      - ELASTICSEARCH_HOSTS=https://es01:${ELASTIC_PORT}
+      - ELASTICSEARCH_HOSTS=https://es01:${ELASTIC_PORT},https://es02:${ELASTIC2_PORT} # Add both es01 and es02
       - ELASTICSEARCH_USERNAME=kibana_system
       - ELASTICSEARCH_PASSWORD=${ELASTIC_PASSWORD}
       - ELASTICSEARCH_SSL_CERTIFICATEAUTHORITIES=config/certs/ca/ca.crt
