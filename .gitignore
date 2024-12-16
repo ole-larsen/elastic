@@ -6,5 +6,7 @@
 
 .docker/data/elasticsearch/*
 .docker/data/kibana/*
+.docker/data/kibana-dev/*
 .docker/logs/elasticsearch/*
 .docker/logs/kibana/*
+.docker/logs/kibana-dev/*
