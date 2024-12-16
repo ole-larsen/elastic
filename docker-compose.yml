@@ -15,7 +15,6 @@ services:
       - ELASTIC_PASSWORD=${ELASTIC_PASSWORD}
       - xpack.security.enabled=true
       - xpack.security.enrollment.enabled=true
-      - xpack.security.enabled=true
       - xpack.security.http.ssl.enabled=true
       - xpack.security.http.ssl.key=certs/es01/es01.key
       - xpack.security.http.ssl.certificate=certs/es01/es01.crt
@@ -60,7 +59,6 @@ services:
       - ELASTIC_PASSWORD=${ELASTIC_PASSWORD}
       - xpack.security.enabled=true
       - xpack.security.enrollment.enabled=true
-      - xpack.security.enabled=true
       - xpack.security.http.ssl.enabled=true
       - xpack.security.http.ssl.key=certs/es02/es02.key
       - xpack.security.http.ssl.certificate=certs/es02/es02.crt
@@ -366,3 +364,4 @@ networks:
   elastic-web:
     name: elastic-web
     driver: bridge
+
