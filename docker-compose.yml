@@ -188,7 +188,7 @@ services:
     build:
       context: ./.docker/build/elasticsearch/.
       args:
-        ELASTIC_PORT: ${ELASTIC_PORT}
+        ELASTIC_PORT: ${ELASTIC_PORT2}
     labels:
       co.elastic.logs/module: elasticsearch
     volumes:
