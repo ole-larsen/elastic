@@ -7,10 +7,11 @@ services:
       - certificates:/usr/share/elasticsearch/config/certs
       - es01data:/usr/share/elasticsearch/data
     ports:
-      - ${ELASTIC_PORT}:9200
+      - ${ELASTIC_PORT}:${ELASTIC_PORT}
     environment:
       - node.name=es01
       - cluster.name=${CLUSTER_NAME}
+      - http.port=${ELASTIC_PORT}
       - discovery.type=single-node
       - ELASTIC_PASSWORD=${ELASTIC_PASSWORD}
       - xpack.security.enabled=true
@@ -36,7 +37,7 @@ services:
       test:
         [
           "CMD-SHELL",
-          "curl -s --user elastic:${ELASTIC_PASSWORD} --cacert /usr/share/elasticsearch/config/certs/ca/ca.crt -X GET https://es01:9200/_cluster/health?pretty | grep status | grep -q '\\(green\\|yellow\\)'"
+          "curl -s --user elastic:${ELASTIC_PASSWORD} --cacert /usr/share/elasticsearch/config/certs/ca/ca.crt -X GET https://es01:${ELASTIC_PORT}/_cluster/health?pretty | grep status | grep -q '\\(green\\|yellow\\)'"
         ]
       interval: 10s
       timeout: 10s
@@ -51,10 +52,11 @@ services:
       - certificates:/usr/share/elasticsearch/config/certs
       - es02data:/usr/share/elasticsearch/data
     ports:
-      - ${ELASTIC2_PORT}:9200
+      - ${ELASTIC2_PORT}:${ELASTIC2_PORT}
     environment:
       - node.name=es02
       - cluster.name=${CLUSTER_NAME}
+      - http.port=${ELASTIC2_PORT}
       - discovery.type=single-node
       - ELASTIC_PASSWORD=${ELASTIC_PASSWORD}
       - xpack.security.enabled=true
@@ -80,7 +82,7 @@ services:
       test:
         [
           "CMD-SHELL",
-          "curl -s --user elastic:${ELASTIC_PASSWORD} --cacert /usr/share/elasticsearch/config/certs/ca/ca.crt -X GET https://es02:9201/_cluster/health?pretty | grep status | grep -q '\\(green\\|yellow\\)'"
+          "curl -s --user elastic:${ELASTIC_PASSWORD} --cacert /usr/share/elasticsearch/config/certs/ca/ca.crt -X GET https://es02:${ELASTIC2_PORT}/_cluster/health?pretty | grep status | grep -q '\\(green\\|yellow\\)'"
         ]
       interval: 10s
       timeout: 10s
@@ -205,11 +207,11 @@ services:
         until curl -s -X POST --cacert config/certs/ca/ca.crt -u "elastic:${ELASTIC_PASSWORD}" -H "Content-Type: application/json" https://es01:${ELASTIC_PORT}/_security/user/kibana_system/_password -d "{\"password\":\"${KIBANA_PASSWORD}\"}" | grep -q "^{}"; do sleep 10; done;
 
         echo "Waiting for Elasticsearch ES02 availability";
-        until curl -s --cacert config/certs/ca/ca.crt https://es02:${ELASTIC_PORT} | grep -q "missing authentication credentials"; do sleep 30; done;
+        until curl -s --cacert config/certs/ca/ca.crt https://es02:${ELASTIC2_PORT} | grep -q "missing authentication credentials"; do sleep 30; done;
         echo "es02 done";
         
         echo "Setting kibana_system es02 password";
-        until curl -s -X POST --cacert config/certs/ca/ca.crt -u "elastic:${ELASTIC_PASSWORD}" -H "Content-Type: application/json" https://es02:${ELASTIC_PORT}/_security/user/kibana_system/_password -d "{\"password\":\"${KIBANA_PASSWORD}\"}" | grep -q "^{}"; do sleep 10; done;
+        until curl -s -X POST --cacert config/certs/ca/ca.crt -u "elastic:${ELASTIC_PASSWORD}" -H "Content-Type: application/json" https://es02:${ELASTIC2_PORT}/_security/user/kibana_system/_password -d "{\"password\":\"${KIBANA_PASSWORD}\"}" | grep -q "^{}"; do sleep 10; done;
         
         echo "All done!";
       '
@@ -286,7 +288,7 @@ services:
       - "${KIBANA2_PORT}:5601"
     environment:
       - SERVERNAME=kibana_es02
-      - ELASTICSEARCH_HOSTS=https://es02:${ELASTIC_PORT}
+      - ELASTICSEARCH_HOSTS=https://es02:${ELASTIC2_PORT}
       - ELASTICSEARCH_USERNAME=kibana_system
       - ELASTICSEARCH_PASSWORD=${KIBANA_PASSWORD}
       - ELASTICSEARCH_SSL_CERTIFICATEAUTHORITIES=config/certs/ca/ca.crt
