@@ -175,7 +175,7 @@ services:
       test:
         [
           "CMD-SHELL",
-          "curl -s --cacert config/certs/ca/ca.crt https://es01:${ELASTIC_PORT} | grep -q 'missing authentication credentials'"
+          "curl -s --cacert config/certs/ca/ca.crt https://es01:9200 | grep -q 'missing authentication credentials'"
         ]
       interval: 10s
       timeout: 10s
@@ -231,7 +231,7 @@ services:
       test:
         [
           "CMD-SHELL",
-          "curl -s --cacert config/certs/ca/ca.crt https://es02:${ELASTIC2_PORT} | grep -q 'missing authentication credentials'"
+          "curl -s --cacert config/certs/ca/ca.crt https://es02:9200 | grep -q 'missing authentication credentials'"
         ]
       interval: 10s
       timeout: 10s
