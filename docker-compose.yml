@@ -94,8 +94,6 @@ services:
       - es01logs:/usr/share/elasticsearch/logs
       - certificates:/usr/share/elasticsearch/config/certs
       - es01data:/usr/share/elasticsearch/data
-    ports:
-      - ${ELASTIC_PORT}:${ELASTIC_PORT}
     environment:
       - node.name=es01
       - cluster.name=${CLUSTER_NAME}
