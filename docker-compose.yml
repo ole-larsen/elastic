@@ -199,17 +199,18 @@ services:
         fi;
         echo "Waiting for Elasticsearch ES01 availability";
         until curl -s --cacert config/certs/ca/ca.crt https://es01:${ELASTIC_PORT} | grep -q "missing authentication credentials"; do sleep 30; done;
+        echo "es01 done";
+
+        echo "Setting kibana_system es01 password";
+        until curl -s -X POST --cacert config/certs/ca/ca.crt -u "elastic:${ELASTIC_PASSWORD}" -H "Content-Type: application/json" https://es01:${ELASTIC_PORT}/_security/user/kibana_system/_password -d "{\"password\":\"${KIBANA_PASSWORD}\"}" | grep -q "^{}"; do sleep 10; done;
 
         echo "Waiting for Elasticsearch ES02 availability";
         until curl -s --cacert config/certs/ca/ca.crt https://es02:${ELASTIC_PORT} | grep -q "missing authentication credentials"; do sleep 30; done;
-
-        echo "Setting kibana_system password";
-        until curl -s -X POST --cacert config/certs/ca/ca.crt -u "elastic:${ELASTIC_PASSWORD}" -H "Content-Type: application/json" https://es01:${ELASTIC_PORT}/_security/user/kibana_system/_password -d "{\"password\":\"${KIBANA_PASSWORD}\"}" | grep -q "^{}"; do sleep 10; done;
+        echo "es02 done";
         
-        echo "Setting kibana_system dev password";
+        echo "Setting kibana_system es02 password";
         until curl -s -X POST --cacert config/certs/ca/ca.crt -u "elastic:${ELASTIC_PASSWORD}" -H "Content-Type: application/json" https://es02:${ELASTIC_PORT}/_security/user/kibana_system/_password -d "{\"password\":\"${KIBANA_PASSWORD}\"}" | grep -q "^{}"; do sleep 10; done;
         
-
         echo "All done!";
       '
     networks:
