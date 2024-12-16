@@ -96,7 +96,7 @@ services:
       - es01data:/usr/share/elasticsearch/data
     environment:
       - node.name=es01
-      - cluster.name=${CLUSTER_NAME}
+      - cluster.name=docker-es01
       - http.port=${ELASTIC_PORT}
       - discovery.type=single-node
       - ELASTIC_PASSWORD=${ELASTIC_PASSWORD}
@@ -139,7 +139,7 @@ services:
       - es02data:/usr/share/elasticsearch/data
     environment:
       - node.name=es02
-      - cluster.name=${CLUSTER_NAME}
+      - cluster.name=docker-es02
       - http.port=${ELASTIC_PORT}
       - discovery.type=single-node
       - ELASTIC_PASSWORD=${ELASTIC_PASSWORD}
