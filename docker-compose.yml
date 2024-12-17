@@ -257,47 +257,47 @@ services:
       interval: 10s
       timeout: 10s
       retries: 120
-  kibana_es02:
-    container_name: kibana_es02
-    depends_on:
-      - es02
-    image: olelarsen/kibana
-    build:
-      context: ./.docker/build/kibana/.
-      args:
-        STACK_VERSION: ${STACK_VERSION}
-        KIBANA_PORT: ${KIBANA2_PORT}
-    labels:
-      co.elastic.logs/module: kibana
-    volumes:
-      - es02kibanalogs:/usr/share/kibana/logs
-      - certificates:/usr/share/kibana/config/certs:rw
-      - es02kibana:/usr/share/kibana/data
-    networks:
-      - elastic-web
-    ports:
-      - "${KIBANA2_PORT}:5601"
-    environment:
-      - SERVERNAME=kibana_es02
-      - ELASTICSEARCH_HOSTS=https://es02:${ELASTIC2_PORT}
-      - ELASTICSEARCH_USERNAME=kibana_system
-      - ELASTICSEARCH_PASSWORD=${KIBANA_PASSWORD}
-      - ELASTICSEARCH_SSL_CERTIFICATEAUTHORITIES=config/certs/ca/ca.crt
-      - XPACK_SECURITY_ENCRYPTIONKEY=${ENCRYPTION_KEY}
-      - XPACK_ENCRYPTEDSAVEDOBJECTS_ENCRYPTIONKEY=${ENCRYPTION_KEY}
-      - XPACK_REPORTING_ENCRYPTIONKEY=${ENCRYPTION_KEY}
-      - xpack.reporting.roles.enabled=false
-      - ELASTICSEARCH_PUBLICBASEURL=https://es02:${ELASTIC2_PORT}
-    mem_limit: ${KB_MEM_LIMIT}
-    healthcheck:
-      test:
-        [
-          "CMD-SHELL",
-          "curl -s -I http://kibana_es02:${KIBANA_PORT} | grep -q 'HTTP/1.1 302 Found'"
-        ]
-      interval: 10s
-      timeout: 10s
-      retries: 120
+  # kibana_es02:
+  #   container_name: kibana_es02
+  #   depends_on:
+  #     - es02
+  #   image: olelarsen/kibana
+  #   build:
+  #     context: ./.docker/build/kibana/.
+  #     args:
+  #       STACK_VERSION: ${STACK_VERSION}
+  #       KIBANA_PORT: ${KIBANA2_PORT}
+  #   labels:
+  #     co.elastic.logs/module: kibana
+  #   volumes:
+  #     - es02kibanalogs:/usr/share/kibana/logs
+  #     - certificates:/usr/share/kibana/config/certs:rw
+  #     - es02kibana:/usr/share/kibana/data
+  #   networks:
+  #     - elastic-web
+  #   ports:
+  #     - "${KIBANA2_PORT}:5601"
+  #   environment:
+  #     - SERVERNAME=kibana_es02
+  #     - ELASTICSEARCH_HOSTS=https://es02:${ELASTIC2_PORT}
+  #     - ELASTICSEARCH_USERNAME=kibana_system
+  #     - ELASTICSEARCH_PASSWORD=${KIBANA_PASSWORD}
+  #     - ELASTICSEARCH_SSL_CERTIFICATEAUTHORITIES=config/certs/ca/ca.crt
+  #     - XPACK_SECURITY_ENCRYPTIONKEY=${ENCRYPTION_KEY}
+  #     - XPACK_ENCRYPTEDSAVEDOBJECTS_ENCRYPTIONKEY=${ENCRYPTION_KEY}
+  #     - XPACK_REPORTING_ENCRYPTIONKEY=${ENCRYPTION_KEY}
+  #     - xpack.reporting.roles.enabled=false
+  #     - ELASTICSEARCH_PUBLICBASEURL=https://es02:${ELASTIC2_PORT}
+  #   mem_limit: ${KB_MEM_LIMIT}
+  #   healthcheck:
+  #     test:
+  #       [
+  #         "CMD-SHELL",
+  #         "curl -s -I http://kibana_es02:${KIBANA_PORT} | grep -q 'HTTP/1.1 302 Found'"
+  #       ]
+  #     interval: 10s
+  #     timeout: 10s
+  #     retries: 120
 volumes:
   certificates:
     driver: local # Define the driver and options under the volume name
