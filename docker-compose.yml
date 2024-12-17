@@ -283,6 +283,8 @@ services:
       - es02kibana:/usr/share/kibana/data
     ports:
       - ${KIBANA2_PORT}:5601
+    networks:
+      - elastic-web
     environment:
       - SERVERNAME=kibana_es02
       - ELASTICSEARCH_HOSTS=http://es02:${ELASTIC_PORT}
