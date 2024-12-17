@@ -1,92 +1,107 @@
 services:
-  # elastic_setup:
-  #   container_name: elastic_setup
-  #   image: olelarsen/elastic-setup
-  #   build:
-  #     context: ./.docker/build/setup/.
-  #     args:
-  #       STACK_VERSION: ${STACK_VERSION}
-  #   volumes:
-  #     - certificates:/usr/share/elasticsearch/config/certs
-  #   user: "0"
-  #   restart: "no"
-  #   command: >
-  #     bash -c '
-  #       if [ ! -d "config/certs/ca" ] 
-  #       then
-  #         echo "Creating CA";
-  #         bin/elasticsearch-certutil ca --silent --pem -out config/certs/ca.zip;
-  #         unzip config/certs/ca.zip -d config/certs;
-  #         rm -rf config/certs/ca.zip;
-  #       else
-  #         ls -la config/certs/ca;
-  #       fi;
+  elastic_setup:
+    container_name: elastic_setup
+    image: olelarsen/elastic-setup
+    build:
+      context: ./.docker/build/setup/.
+      args:
+        STACK_VERSION: ${STACK_VERSION}
+    volumes:
+      - certificates:/usr/share/elasticsearch/config/certs
+    user: "0"
+    restart: "no"
+    command: >
+      bash -c '
+        if [ ! -d "config/certs/ca" ] 
+        then
+          echo "Creating CA";
+          bin/elasticsearch-certutil ca --silent --pem -out config/certs/ca.zip;
+          unzip config/certs/ca.zip -d config/certs;
+          rm -rf config/certs/ca.zip;
+        else
+          ls -la config/certs/ca;
+        fi;
 
-  #       if [ ! -d "config/certs/es01" ] 
-  #       then
-  #         echo "Creating certificates es01";
-  #         echo -ne \
-  #         "instances:\n"\
-  #         "  - name: es01\n"\
-  #         "    dns:\n"\
-  #         "      - es01\n"\
-  #         "    ip:\n"\
-  #         "      - 127.0.0.1\n"\
-  #         > config/certs/instances.yml;
-  #         bin/elasticsearch-certutil cert --silent --pem -out config/certs/certs.zip --in config/certs/instances.yml --ca-cert config/certs/ca/ca.crt --ca-key config/certs/ca/ca.key;
-  #         unzip config/certs/certs.zip -d config/certs;
-  #         rm -rf config/certs/certs.zip;
-  #         rm config/certs/instances.yml;
-  #       else
-  #         ls -la config/certs/es01;
-  #       fi;
+        if [ ! -d "config/certs/es01" ] 
+        then
+          echo "Creating certificates es01";
+          echo -ne \
+          "instances:\n"\
+          "  - name: es01\n"\
+          "    dns:\n"\
+          "      - es01\n"\
+          "    ip:\n"\
+          "      - 5.159.102.122\n"\
+          > config/certs/instances.yml;
+        else
+          ls -la config/certs/es01;
+        fi;
 
-  #       if [ ! -d "config/certs/es02" ] 
-  #       then
-  #         echo "Creating certificates es02";
-  #         echo -ne \
-  #         "instances:\n"\
-  #         "  - name: es02\n"\
-  #         "    dns:\n"\
-  #         "      - es02\n"\
-  #         "    ip:\n"\
-  #         "      - 127.0.0.1\n"\
-  #         > config/certs/instances.yml;
-  #         bin/elasticsearch-certutil cert --silent --pem -out config/certs/certs.zip --in config/certs/instances.yml --ca-cert config/certs/ca/ca.crt --ca-key config/certs/ca/ca.key;
-  #         unzip config/certs/certs.zip -d config/certs;
-  #         rm -rf config/certs/certs.zip;
-  #         rm config/certs/instances.yml;
-  #       else
-  #         ls -la config/certs/es02;
-  #       fi;
+        if [ ! -d "config/certs/es02" ] 
+        then
+          echo "Creating certificates es02";
+          echo -ne \
+          "instances:\n"\
+          "  - name: es02\n"\
+          "    dns:\n"\
+          "      - es02\n"\
+          "    ip:\n"\
+          "      - 5.159.102.122\n"\
+          > config/certs/instances.yml;
+          bin/elasticsearch-certutil cert --silent --pem -out config/certs/certs.zip --in config/certs/instances.yml --ca-cert config/certs/ca/ca.crt --ca-key config/certs/ca/ca.key;
+          unzip config/certs/certs.zip -d config/certs;
+          rm -rf config/certs/certs.zip;
+          rm config/certs/instances.yml;
+        else
+          ls -la config/certs/es02;
+        fi;
 
-  #       if [ ! -d "config/certs/kibana" ] 
-  #       then
-  #         echo "Creating certificates kibana";
-  #         echo -ne \
-  #         "instances:\n"\
-  #         "  - name: kibana\n"\
-  #         "    dns:\n"\
-  #         "      - kibana\n"\
-  #         "    ip:\n"\
-  #         "      - 127.0.0.1\n"\
-  #         > config/certs/instances.yml;
-  #         bin/elasticsearch-certutil cert --silent --pem -out config/certs/certs.zip --in config/certs/instances.yml --ca-cert config/certs/ca/ca.crt --ca-key config/certs/ca/ca.key;
-  #         unzip config/certs/certs.zip -d config/certs;
-  #         rm -rf config/certs/certs.zip;
-  #         rm config/certs/instances.yml;
-  #       else
-  #         ls -la config/certs/kibana;
-  #       fi;
-  #       echo "done";
-  #     '
-  #   networks:
-  #     - elastic-web
-  #   healthcheck:
-  #     test: [ "CMD-SHELL", "[ -f config/certs/es01/es01.crt ]" ]
-  #     interval: 1s
-  #     timeout: 5s
-  #     retries: 120
+        if [ ! -d "config/certs/kibana_es01" ] 
+        then
+          echo "Creating certificates kibana_es01";
+          echo -ne \
+          "instances:\n"\
+          "  - name: kibana_es01\n"\
+          "    dns:\n"\
+          "      - kibana_es01\n"\
+          "    ip:\n"\
+          "      - 5.159.102.122\n"\
+          > config/certs/instances.yml;
+          bin/elasticsearch-certutil cert --silent --pem -out config/certs/certs.zip --in config/certs/instances.yml --ca-cert config/certs/ca/ca.crt --ca-key config/certs/ca/ca.key;
+          unzip config/certs/certs.zip -d config/certs;
+          rm -rf config/certs/certs.zip;
+          rm config/certs/instances.yml;
+        else
+          ls -la config/certs/kibana_es01;
+        fi;
+
+        if [ ! -d "config/certs/kibana_es01" ] 
+        then
+          echo "Creating certificates kibana_es02";
+          echo -ne \
+          "instances:\n"\
+          "  - name: kibana_es02\n"\
+          "    dns:\n"\
+          "      - kibana_es02\n"\
+          "    ip:\n"\
+          "      - 5.159.102.122\n"\
+          > config/certs/instances.yml;
+          bin/elasticsearch-certutil cert --silent --pem -out config/certs/certs.zip --in config/certs/instances.yml --ca-cert config/certs/ca/ca.crt --ca-key config/certs/ca/ca.key;
+          unzip config/certs/certs.zip -d config/certs;
+          rm -rf config/certs/certs.zip;
+          rm config/certs/instances.yml;
+        else
+          ls -la config/certs/kibana_es02;
+        fi;
+        echo "done";
+      '
+    networks:
+      - elastic-web
+    healthcheck:
+      test: [ "CMD-SHELL", "[ -f config/certs/es01/es01.crt ]" ]
+      interval: 1s
+      timeout: 5s
+      retries: 120
   es01:
     image: olelarsen/elasticsearch
     container_name: es01
@@ -125,7 +140,7 @@ services:
       test:
         [
           "CMD-SHELL",
-          "curl -s --user elastic:${ELASTIC_PASSWORD}--cacert /usr/share/elasticsearch/config/certs/ca/ca.crt -X GET https://es01:9200/_cluster/health?pretty | grep status | grep -q '\\(green\\|yellow\\)'"
+          "curl -s --user elastic:${ELASTIC_PASSWORD}--cacert /usr/share/elasticsearch/config/certs/ca/ca.crt -X GET https://es01:${ELASTIC_PORT}/_cluster/health?pretty | grep status | grep -q '\\(green\\|yellow\\)'"
         ]
       interval: 10s
       timeout: 10s
@@ -154,7 +169,7 @@ services:
       - xpack.security.http.ssl.certificate=certs/es02/es02.crt
       - xpack.security.http.ssl.certificate_authorities=certs/ca/ca.crt
       - xpack.security.http.ssl.verification_mode=certificate
-      - xpack.security.transport.ssl.enabled=true
+      - xpack.security.transport.ssl.enabled=false
       - xpack.security.transport.ssl.key=certs/es02/es02.key
       - xpack.security.transport.ssl.certificate=certs/es02/es02.crt
       - xpack.security.transport.ssl.certificate_authorities=certs/ca/ca.crt
