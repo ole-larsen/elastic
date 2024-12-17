@@ -33,6 +33,10 @@ services:
           "    ip:\n"\
           "      - 5.159.102.122\n"\
           > config/certs/instances.yml;
+          bin/elasticsearch-certutil cert --silent --pem -out config/certs/certs.zip --in config/certs/instances.yml --ca-cert config/certs/ca/ca.crt --ca-key config/certs/ca/ca.key;
+          unzip config/certs/certs.zip -d config/certs;
+          rm -rf config/certs/certs.zip;
+          rm config/certs/instances.yml;
         else
           ls -la config/certs/es01;
         fi;
@@ -75,7 +79,7 @@ services:
           ls -la config/certs/kibana_es01;
         fi;
 
-        if [ ! -d "config/certs/kibana_es01" ] 
+        if [ ! -d "config/certs/kibana_es02" ] 
         then
           echo "Creating certificates kibana_es02";
           echo -ne \
