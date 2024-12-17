@@ -30,6 +30,7 @@ services:
           "  - name: es01\n"\
           "    dns:\n"\
           "      - es01\n"\
+          "      - localhost\n"\
           "    ip:\n"\
           "      - 127.0.0.1\n"\
           > config/certs/instances.yml;
@@ -49,6 +50,7 @@ services:
           "  - name: es02\n"\
           "    dns:\n"\
           "      - es02\n"\
+          "      - localhost\n"\
           "    ip:\n"\
           "      - 127.0.0.1\n"\
           > config/certs/instances.yml;
@@ -68,6 +70,7 @@ services:
           "  - name: kibana_es01\n"\
           "    dns:\n"\
           "      - kibana_es01\n"\
+          "      - localhost\n"\
           "    ip:\n"\
           "      - 127.0.0.1\n"\
           > config/certs/instances.yml;
@@ -87,6 +90,7 @@ services:
           "  - name: kibana_es02\n"\
           "    dns:\n"\
           "      - kibana_es02\n"\
+          "      - localhost\n"\
           "    ip:\n"\
           "      - 127.0.0.1\n"\
           > config/certs/instances.yml;
