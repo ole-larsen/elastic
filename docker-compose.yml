@@ -167,7 +167,7 @@ services:
         ]
       interval: 10s
       timeout: 10s
-      retries: 24s
+      retries: 24
     networks:
       - elastic-web
   
