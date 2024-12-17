@@ -165,9 +165,9 @@ services:
     image: olelarsen/elasticsearch
     container_name: es02
     volumes:
-      - es01logs:/usr/share/elasticsearch/logs
+      - es02logs:/usr/share/elasticsearch/logs
       - certificates:/usr/share/elasticsearch/config/certs
-      - es01data:/usr/share/elasticsearch/data
+      - es02data:/usr/share/elasticsearch/data
     ports:
       - ${ELASTIC2_PORT}:${ELASTIC_PORT}
     environment:
