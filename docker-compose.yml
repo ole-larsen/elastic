@@ -269,7 +269,7 @@ services:
       retries: 120
   kibana_es02:
     depends_on:
-      - es02:
+      - es02
     image: olelarsen/kibana
     build:
       context: ./.docker/build/kibana/.
