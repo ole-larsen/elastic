@@ -146,7 +146,6 @@ services:
       - xpack.security.http.ssl.enabled=false
       - xpack.ml.use_auto_machine_memory_percent=true
       - xpack.license.self_generated.type=${LICENSE}
-      - xpack.ml.use_auto_machine_memory_percent=true
       - ES_JAVA_OPTS=-Xms512m -Xmx512m
 
     ulimits:
