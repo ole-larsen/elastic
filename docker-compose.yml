@@ -123,12 +123,12 @@ services:
       - ELASTIC_PASSWORD=${ELASTIC_PASSWORD}
       - xpack.security.enabled=true
       - xpack.security.enrollment.enabled=true
-      - xpack.security.http.ssl.enabled=false
+      - xpack.security.http.ssl.enabled=true
       - xpack.security.http.ssl.key=certs/es01/es01.key
       - xpack.security.http.ssl.certificate=certs/es01/es01.crt
       - xpack.security.http.ssl.certificate_authorities=certs/ca/ca.crt
       - xpack.security.http.ssl.verification_mode=certificate
-      - xpack.security.transport.ssl.enabled=false
+      - xpack.security.transport.ssl.enabled=true
       - xpack.security.transport.ssl.key=certs/es01/es01.key
       - xpack.security.transport.ssl.certificate=certs/es01/es01.crt
       - xpack.security.transport.ssl.certificate_authorities=certs/ca/ca.crt
@@ -144,19 +144,11 @@ services:
       test:
         [
           "CMD-SHELL",
-          "curl --output /dev/null --silent --head --fail -u elastic:${ELASTIC_PASSWORD} http://es01:${ELASTIC_PORT}",
+          "curl -s --user elastic:${ELASTIC_PASSWORD}--cacert /usr/share/elasticsearch/config/certs/ca/ca.crt -X GET https://es01:${ELASTIC_PORT}/_cluster/health?pretty | grep status | grep -q '\\(green\\|yellow\\)'"
         ]
-      interval: 5s
-      timeout: 5s
-      retries: 10
-      # test:
-      #   [
-      #     "CMD-SHELL",
-      #     "curl -s --user elastic:${ELASTIC_PASSWORD}--cacert /usr/share/elasticsearch/config/certs/ca/ca.crt -X GET https://es01:${ELASTIC_PORT}/_cluster/health?pretty | grep status | grep -q '\\(green\\|yellow\\)'"
-      #   ]
-      # interval: 10s
-      # timeout: 10s
-      # retries: 24
+      interval: 10s
+      timeout: 10s
+      retries: 24
     networks:
       - elastic-web
   # es02:
