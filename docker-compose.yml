@@ -125,7 +125,7 @@ services:
       test:
         [
           "CMD-SHELL",
-          "curl -s --user elastic:${ELASTIC_PASSWORD} --cacert /usr/share/elasticsearch/config/certs/ca/ca.crt -X GET https://es01:9200/_cluster/health?pretty | grep status | grep -q '\\(green\\|yellow\\)'"
+          "curl -s --user elastic:Kbb6JtDVc#y5SiP --cacert /usr/share/elasticsearch/config/certs/ca/ca.crt -X GET https://es01:9200/_cluster/health?pretty | grep status | grep -q '\\(green\\|yellow\\)'"
         ]
       interval: 10s
       timeout: 10s
@@ -145,16 +145,10 @@ services:
       - discovery.type=single-node
       - ELASTIC_PASSWORD=${ELASTIC_PASSWORD}
       - xpack.security.enabled=true
-      - xpack.security.enrollment.enabled=true
-      - xpack.security.http.ssl.enabled=true
-      - xpack.security.http.ssl.key=certs/es02/es02.key
-      - xpack.security.http.ssl.certificate=certs/es02/es02.crt
-      - xpack.security.http.ssl.certificate_authorities=certs/ca/ca.crt
-      - xpack.security.http.ssl.verification_mode=certificate
+      - xpack.security.http.ssl.enabled=false
       - xpack.ml.use_auto_machine_memory_percent=true
       - xpack.license.self_generated.type=${LICENSE}
       - ES_JAVA_OPTS=-Xms512m -Xmx512m
-
     ulimits:
       memlock:
         soft: -1
@@ -163,11 +157,11 @@ services:
       test:
         [
           "CMD-SHELL",
-          "curl -s --user elastic:${ELASTIC_PASSWORD} --cacert /usr/share/elasticsearch/config/certs/ca/ca.crt -X GET https://es02:9200/_cluster/health?pretty | grep status | grep -q '\\(green\\|yellow\\)'"
+          "curl --output /dev/null --silent --head --fail -u elastic:${ELASTIC_PASSWORD} http://es02:9200",
         ]
-      interval: 10s
-      timeout: 10s
-      retries: 24
+      interval: 5s
+      timeout: 5s
+      retries: 10
     networks:
       - elastic-web
   
