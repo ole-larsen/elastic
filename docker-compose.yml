@@ -139,6 +139,8 @@ services:
       - es02logs:/usr/share/elasticsearch/logs
       - certificates:/usr/share/elasticsearch/config/certs
       - es02data:/usr/share/elasticsearch/data
+    ports:
+      - ${ELASTIC2_PORT}:${ELASTIC_PORT}
     environment:
       - discovery.type=single-node
       - ELASTIC_PASSWORD=${ELASTIC_PASSWORD}
