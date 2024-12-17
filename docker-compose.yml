@@ -98,9 +98,11 @@ services:
       - ${ELASTIC_PORT}:${ELASTIC_PORT}
     environment:
       - node.name=es01
-      - cluster.name=${CLUSTER_NAME}
+      - cluster.name=${CLUSTER_NAME}-es01
+      - cluster.initial_master_nodes=es01
       - http.port=${ELASTIC_PORT}
       - discovery.type=single-node
+      - discovery.seed.host=es01
       - ELASTIC_PASSWORD=${ELASTIC_PASSWORD}
       - xpack.security.enabled=true
       - xpack.security.enrollment.enabled=true
@@ -143,9 +145,11 @@ services:
       - ${ELASTIC2_PORT}:${ELASTIC_PORT}
     environment:
       - node.name=es02
-      - cluster.name=${CLUSTER_NAME}
+      - cluster.name=${CLUSTER_NAME}-es02
+      - cluster.initial_master_nodes=es02
       - http.port=${ELASTIC_PORT}
       - discovery.type=single-node
+      - discovery.seed.host=es02
       - ELASTIC_PASSWORD=${ELASTIC_PASSWORD}
       - xpack.security.enabled=true
       - xpack.security.enrollment.enabled=true
