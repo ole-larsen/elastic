@@ -288,7 +288,7 @@ services:
       - "${KIBANA2_PORT}:5601"
     environment:
       - SERVERNAME=kibana_es02
-      - ELASTICSEARCH_HOSTS=http://es02:${ELASTIC2_PORT}
+      - ELASTICSEARCH_HOSTS=http://es02:${ELASTIC_PORT}
       - ELASTICSEARCH_USERNAME=kibana_system
       - ELASTICSEARCH_PASSWORD=${KIBANA_PASSWORD}
       - ELASTICSEARCH_SSL_CERTIFICATEAUTHORITIES=config/certs/ca/ca.crt
