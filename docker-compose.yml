@@ -208,12 +208,10 @@ services:
         until curl -s -X POST --cacert config/certs/ca/ca.crt -u "elastic:${ELASTIC_PASSWORD}" -H "Content-Type: application/json" https://es01:${ELASTIC_PORT}/_security/user/kibana_system/_password -d "{\"password\":\"${KIBANA_PASSWORD}\"}" | grep -q "^{}"; do sleep 10; done;
         echo "es01 kibana done";
 
-        echo "Waiting for Elasticsearch ES02 availability";
-        until curl -s --cacert config/certs/ca/ca.crt https://es02:${ELASTIC2_PORT} | grep -q "missing authentication credentials"; do sleep 30; done;
-        echo "es02 done";
-        
-        echo "Setting kibana_system es02 password";
-        until curl -s -X POST --cacert config/certs/ca/ca.crt -u "elastic:${ELASTIC_PASSWORD}" -H "Content-Type: application/json" https://es02:${ELASTIC2_PORT}/_security/user/kibana_system/_password -d "{\"password\":\"${KIBANA_PASSWORD}\"}" | grep -q "^{}"; do sleep 10; done;
+        echo "Setup the kibana_system password";
+        start_time=$(date +%s);
+        timeout=60;
+        until curl -s -u "elastic:${ELASTIC_PASSWORD}" -X POST http://es02:${ELASTIC_PORT}/_security/user/kibana_system/_password -d "{\"password\":\"'${KIBANA_PASSWORD}'\"}" -H "Content-Type: application/json" | grep -q "^{}"; do if [ $(($(date +%s) - $$start_time)) -ge $$timeout ]; then echo "Error: Elasticsearch timeout"; exit 1; fi; sleep 2; done;
         echo "es02 kibana done";
 
         echo "All done!";
