@@ -2,7 +2,8 @@
 .docker/certs/ca/
 .docker/certs/es01/
 .docker/certs/es02/
-.docker/certs/kibana/
+.docker/certs/kibana_es01/
+.docker/certs/kibana_es02/
 
 .docker/data/elasticsearch/*
 .docker/data/kibana/*
