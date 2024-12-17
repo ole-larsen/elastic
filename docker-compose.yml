@@ -30,8 +30,6 @@ services:
           "  - name: es01\n"\
           "    dns:\n"\
           "      - es01\n"\
-          "    ip:\n"\
-          "      - 5.159.102.122\n"\
           > config/certs/instances.yml;
           bin/elasticsearch-certutil cert --silent --pem -out config/certs/certs.zip --in config/certs/instances.yml --ca-cert config/certs/ca/ca.crt --ca-key config/certs/ca/ca.key;
           unzip config/certs/certs.zip -d config/certs;
@@ -49,8 +47,6 @@ services:
           "  - name: es02\n"\
           "    dns:\n"\
           "      - es02\n"\
-          "    ip:\n"\
-          "      - 5.159.102.122\n"\
           > config/certs/instances.yml;
           bin/elasticsearch-certutil cert --silent --pem -out config/certs/certs.zip --in config/certs/instances.yml --ca-cert config/certs/ca/ca.crt --ca-key config/certs/ca/ca.key;
           unzip config/certs/certs.zip -d config/certs;
@@ -68,8 +64,6 @@ services:
           "  - name: kibana_es01\n"\
           "    dns:\n"\
           "      - kibana_es01\n"\
-          "    ip:\n"\
-          "      - 5.159.102.122\n"\
           > config/certs/instances.yml;
           bin/elasticsearch-certutil cert --silent --pem -out config/certs/certs.zip --in config/certs/instances.yml --ca-cert config/certs/ca/ca.crt --ca-key config/certs/ca/ca.key;
           unzip config/certs/certs.zip -d config/certs;
@@ -87,8 +81,6 @@ services:
           "  - name: kibana_es02\n"\
           "    dns:\n"\
           "      - kibana_es02\n"\
-          "    ip:\n"\
-          "      - 5.159.102.122\n"\
           > config/certs/instances.yml;
           bin/elasticsearch-certutil cert --silent --pem -out config/certs/certs.zip --in config/certs/instances.yml --ca-cert config/certs/ca/ca.crt --ca-key config/certs/ca/ca.key;
           unzip config/certs/certs.zip -d config/certs;
