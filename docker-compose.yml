@@ -127,7 +127,7 @@ services:
       - ${ELASTIC_PORT}:${ELASTIC_PORT}
     environment:
       - node.name=es01
-      - cluster.name=${CLUSTER_NAME}-es01
+      - cluster.name=${CLUSTER_NAME}
       - http.port=${ELASTIC_PORT}
       - discovery.type=single-node
       - ELASTIC_PASSWORD=${ELASTIC_PASSWORD}
@@ -172,7 +172,7 @@ services:
       - ${ELASTIC2_PORT}:${ELASTIC_PORT}
     environment:
       - node.name=es02
-      - cluster.name=${CLUSTER_NAME}-es02
+      - cluster.name=${CLUSTER_NAME}
       - http.port=${ELASTIC_PORT}
       - discovery.type=single-node
       - ELASTIC_PASSWORD=${ELASTIC_PASSWORD}
@@ -206,8 +206,6 @@ services:
       retries: 24
     networks:
       - elastic-web
-  
-  
   # elastic_credentials:
   #   container_name: elastic_credentials
   #   image: olelarsen/elastic-setup
