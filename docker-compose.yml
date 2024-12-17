@@ -158,7 +158,7 @@ services:
       test:
         [
           "CMD-SHELL",
-          "curl --output /dev/null --silent --head --fail -u elastic:${ES_LOCAL_PASSWORD} http://elasticsearch:${ES_LOCAL_PORT}",
+          "curl --output /dev/null --silent --head --fail -u elastic:${ELASTIC_PASSWORD} http://es02:9200",
         ]
       interval: 5s
       timeout: 5s
