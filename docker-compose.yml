@@ -317,7 +317,7 @@ services:
       - elastic-web
     environment:
       - SERVERNAME=kibana_es02
-      - ELASTICSEARCH_HOSTS=http://es02:${ELASTIC_PORT}
+      - ELASTICSEARCH_HOSTS=https://es02:${ELASTIC_PORT}
       - ELASTICSEARCH_USERNAME=kibana_system
       - ELASTICSEARCH_PASSWORD=${KIBANA_PASSWORD}
       - ELASTICSEARCH_SSL_CERTIFICATEAUTHORITIES=config/certs/ca/ca.crt
@@ -325,7 +325,7 @@ services:
       - XPACK_ENCRYPTEDSAVEDOBJECTS_ENCRYPTIONKEY=${ENCRYPTION_KEY}
       - XPACK_REPORTING_ENCRYPTIONKEY=${ENCRYPTION_KEY}
       - xpack.reporting.roles.enabled=false
-      - ELASTICSEARCH_PUBLICBASEURL=http://es02:${ELASTIC_PORT}
+      - ELASTICSEARCH_PUBLICBASEURL=https://es02:${ELASTIC_PORT}
     mem_limit: ${KB_MEM_LIMIT}
     healthcheck:
       test:
