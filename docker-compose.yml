@@ -89,6 +89,7 @@ services:
         else
           ls -la config/certs/kibana_es02;
         fi;
+        chown -R 1000:0 config/certs
         echo "done";
       '
     networks:
