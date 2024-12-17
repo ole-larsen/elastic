@@ -206,54 +206,56 @@ services:
       retries: 24
     networks:
       - elastic-web
-  # elastic_credentials:
-  #   container_name: elastic_credentials
-  #   image: olelarsen/elastic-setup
-  #   build:
-  #     context: ./.docker/build/setup/.
-  #     args:
-  #       STACK_VERSION: ${STACK_VERSION}
-  #   restart: "no"
-  #   volumes:
-  #     - certificates:/usr/share/elasticsearch/config/certs:rw
-  #   user: "0"
-  #   command: >
-  #     bash -c '
-  #       echo "Setting file permissions";
-  #       if [ x${ELASTIC_PASSWORD} == x ]; then
-  #         echo "Set the ELASTIC_PASSWORD environment variable in the .env file";
-  #         exit 1;
-  #       fi;
-  #       if [ x${KIBANA_PASSWORD} == x ]; then
-  #         echo "Set the KIBANA_PASSWORD environment variable in the .env file";
-  #         exit 1;
-  #       fi;
-  #       echo "Waiting for Elasticsearch ES01 availability";
-  #       until curl -s --cacert config/certs/ca/ca.crt https://es01:${ELASTIC_PORT} | grep -q "missing authentication credentials"; do sleep 30; done;
-  #       echo "es01 done";
+  elastic_credentials:
+    container_name: elastic_credentials
+    image: olelarsen/elastic-setup
+    build:
+      context: ./.docker/build/setup/.
+      args:
+        STACK_VERSION: ${STACK_VERSION}
+    restart: "no"
+    volumes:
+      - certificates:/usr/share/elasticsearch/config/certs:rw
+    user: "0"
+    command: >
+      bash -c '
+        echo "Setting file permissions";
+        if [ x${ELASTIC_PASSWORD} == x ]; then
+          echo "Set the ELASTIC_PASSWORD environment variable in the .env file";
+          exit 1;
+        fi;
+        if [ x${KIBANA_PASSWORD} == x ]; then
+          echo "Set the KIBANA_PASSWORD environment variable in the .env file";
+          exit 1;
+        fi;
+        echo "Waiting for Elasticsearch ES01 availability";
+        until curl -s --cacert config/certs/ca/ca.crt https://es01:${ELASTIC_PORT} | grep -q "missing authentication credentials"; do sleep 30; done;
+        echo "es01 done";
 
-  #       echo "Setting kibana_system es01 password";
-  #       until curl -s -X POST --cacert config/certs/ca/ca.crt -u "elastic:${ELASTIC_PASSWORD}" -H "Content-Type: application/json" https://es01:${ELASTIC_PORT}/_security/user/kibana_system/_password -d "{\"password\":\"${KIBANA_PASSWORD}\"}" | grep -q "^{}"; do sleep 10; done;
-  #       echo "es01 kibana done";
+        echo "Setting kibana_system es01 password";
+        until curl -s -X POST --cacert config/certs/ca/ca.crt -u "elastic:${ELASTIC_PASSWORD}" -H "Content-Type: application/json" https://es01:${ELASTIC_PORT}/_security/user/kibana_system/_password -d "{\"password\":\"${KIBANA_PASSWORD}\"}" | grep -q "^{}"; do sleep 10; done;
+        echo "es01 kibana done";
 
-  #       echo "Setup the kibana_system password";
-  #       start_time=$(date +%s);
-  #       timeout=60;
-  #       until curl -s -u "elastic:${ELASTIC_PASSWORD}" -X POST http://es02:${ELASTIC_PORT}/_security/user/kibana_system/_password -d "{\"password\":\"'${KIBANA_PASSWORD}'\"}" -H "Content-Type: application/json" | grep -q "^{}"; do if [ $(($(date +%s) - $$start_time)) -ge $$timeout ]; then echo "Error: Elasticsearch timeout"; exit 1; fi; sleep 2; done;
-  #       echo "es02 kibana done";
+        echo "Waiting for Elasticsearch ES02 availability";
+        until curl -s --cacert config/certs/ca/ca.crt https://es02:${ELASTIC_PORT} | grep -q "missing authentication credentials"; do sleep 30; done;
+        echo "es01 done";
 
-  #       echo "All done!";
-  #     '
-  #   networks:
-  #     - elastic-web
-  #   healthcheck:
-  #     test: [ "CMD-SHELL", "[ -f config/certs/es01/es01.crt ]" ]
-  #     interval: 1s
-  #     timeout: 5s
-  #     retries: 120
-  #   depends_on:
-  #     - es01
-  #     - es02
+        echo "Setting kibana_system es02 password";
+        until curl -s -X POST --cacert config/certs/ca/ca.crt -u "elastic:${ELASTIC_PASSWORD}" -H "Content-Type: application/json" https://es02:${ELASTIC_PORT}/_security/user/kibana_system/_password -d "{\"password\":\"${KIBANA_PASSWORD}\"}" | grep -q "^{}"; do sleep 10; done;
+        echo "es01 kibana done";
+
+        echo "All done!";
+      '
+    networks:
+      - elastic-web
+    healthcheck:
+      test: [ "CMD-SHELL", "[ -f config/certs/es01/es01.crt ]" ]
+      interval: 1s
+      timeout: 5s
+      retries: 120
+    depends_on:
+      - es01
+      - es02
   # kibana_es01:
   #   container_name: kibana_es01
   #   depends_on:
