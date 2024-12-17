@@ -266,29 +266,39 @@ services:
       interval: 10s
       timeout: 10s
       retries: 120
-  kibana_es02:
-    container_name: kibana_es02
+  kibana_es02_settings:
     depends_on:
-      - es02
+      es02:
+        condition: service_healthy
+    image: olelarsen/elasticsearch
+    container_name: kibana_es02_settings
+    restart: 'no'
+    command: >
+      bash -c '
+        echo "Setup the kibana_system password";
+        start_time=$(date +%s);
+        timeout=60;
+        until curl -s -u "elastic:${ELASTIC_PASSWORD}" -X POST http://es02:${ELASTIC_PORT}/_security/user/kibana_system/_password -d "{\"password\":\"'${KIBANA_PASSWORD}'\"}" -H "Content-Type: application/json" | grep -q "^{}"; do if [ $(($(date +%s) - $$start_time)) -ge $$timeout ]; then echo "Error: Elasticsearch timeout"; exit 1; fi; sleep 2; done;
+      '
+  kibana_es02:
+    depends_on:
+      kibana_es02_settings:
+        condition: service_completed_successfully
     image: olelarsen/kibana
     build:
       context: ./.docker/build/kibana/.
       args:
         STACK_VERSION: ${STACK_VERSION}
-        KIBANA_PORT: ${KIBANA2_PORT}
-    labels:
-      co.elastic.logs/module: kibana
+        KIBANA_PORT: ${KIBANA_PORT}
     volumes:
       - es02kibanalogs:/usr/share/kibana/logs
       - certificates:/usr/share/kibana/config/certs:rw
       - es02kibana:/usr/share/kibana/data
-    networks:
-      - elastic-web
     ports:
-      - "${KIBANA2_PORT}:5601"
+      - ${KIBANA2_PORT}:5601
     environment:
       - SERVERNAME=kibana_es02
-      - ELASTICSEARCH_HOSTS=http://es02:${ELASTIC_PORT}
+      - ELASTICSEARCH_HOSTS=https://es02:${ELASTIC_PORT}
       - ELASTICSEARCH_USERNAME=kibana_system
       - ELASTICSEARCH_PASSWORD=${KIBANA_PASSWORD}
       - ELASTICSEARCH_SSL_CERTIFICATEAUTHORITIES=config/certs/ca/ca.crt
@@ -296,17 +306,17 @@ services:
       - XPACK_ENCRYPTEDSAVEDOBJECTS_ENCRYPTIONKEY=${ENCRYPTION_KEY}
       - XPACK_REPORTING_ENCRYPTIONKEY=${ENCRYPTION_KEY}
       - xpack.reporting.roles.enabled=false
-      - ELASTICSEARCH_PUBLICBASEURL=http://es02:${ELASTIC2_PORT}
+      - ELASTICSEARCH_PUBLICBASEURL=https://es02:${ELASTIC2_PORT}
     mem_limit: ${KB_MEM_LIMIT}
     healthcheck:
       test:
         [
           "CMD-SHELL",
-          "curl -s -I http://kibana_es02:${KIBANA_PORT} | grep -q 'HTTP/1.1 302 Found'"
+          "curl -s -I http://kibana_es02:5601 | grep -q 'HTTP/1.1 302 Found'",
         ]
       interval: 10s
       timeout: 10s
-      retries: 120
+      retries: 20
 volumes:
   certificates:
     driver: local # Define the driver and options under the volume name
