@@ -170,7 +170,7 @@ services:
       test:
         [
           "CMD-SHELL",
-          "curl --output /dev/null --silent --head --fail -u elastic:${ELASTIC_PASSWORD} http://es02:9200",
+          "curl -s --user elastic:Kbb6JtDVc#y5SiP --cacert /usr/share/elasticsearch/config/certs/ca/ca.crt -X GET https://es02:9200/_cluster/health?pretty | grep status | grep -q '\\(green\\|yellow\\)'"
         ]
       interval: 5s
       timeout: 5s
