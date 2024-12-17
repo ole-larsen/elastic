@@ -269,8 +269,7 @@ services:
       retries: 120
   kibana_es02:
     depends_on:
-      kibana_es02_settings:
-        condition: service_completed_successfully
+      - es02:
     image: olelarsen/kibana
     build:
       context: ./.docker/build/kibana/.
