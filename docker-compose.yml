@@ -178,138 +178,138 @@ services:
     networks:
       - elastic-web
   
-  # elastic_credentials:
-  #   container_name: elastic_credentials
-  #   image: olelarsen/elastic-setup
-  #   build:
-  #     context: ./.docker/build/setup/.
-  #     args:
-  #       STACK_VERSION: ${STACK_VERSION}
-  #   restart: "no"
-  #   volumes:
-  #     - certificates:/usr/share/elasticsearch/config/certs:rw
-  #   user: "0"
-  #   command: >
-  #     bash -c '
-  #       echo "Setting file permissions";
-  #       if [ x${ELASTIC_PASSWORD} == x ]; then
-  #         echo "Set the ELASTIC_PASSWORD environment variable in the .env file";
-  #         exit 1;
-  #       fi;
-  #       if [ x${KIBANA_PASSWORD} == x ]; then
-  #         echo "Set the KIBANA_PASSWORD environment variable in the .env file";
-  #         exit 1;
-  #       fi;
-  #       echo "Waiting for Elasticsearch ES01 availability";
-  #       until curl -s --cacert config/certs/ca/ca.crt https://es01:${ELASTIC_PORT} | grep -q "missing authentication credentials"; do sleep 30; done;
-  #       echo "es01 done";
+  elastic_credentials:
+    container_name: elastic_credentials
+    image: olelarsen/elastic-setup
+    build:
+      context: ./.docker/build/setup/.
+      args:
+        STACK_VERSION: ${STACK_VERSION}
+    restart: "no"
+    volumes:
+      - certificates:/usr/share/elasticsearch/config/certs:rw
+    user: "0"
+    command: >
+      bash -c '
+        echo "Setting file permissions";
+        if [ x${ELASTIC_PASSWORD} == x ]; then
+          echo "Set the ELASTIC_PASSWORD environment variable in the .env file";
+          exit 1;
+        fi;
+        if [ x${KIBANA_PASSWORD} == x ]; then
+          echo "Set the KIBANA_PASSWORD environment variable in the .env file";
+          exit 1;
+        fi;
+        echo "Waiting for Elasticsearch ES01 availability";
+        until curl -s --cacert config/certs/ca/ca.crt https://es01:${ELASTIC_PORT} | grep -q "missing authentication credentials"; do sleep 30; done;
+        echo "es01 done";
 
-  #       echo "Setting kibana_system es01 password";
-  #       until curl -s -X POST --cacert config/certs/ca/ca.crt -u "elastic:${ELASTIC_PASSWORD}" -H "Content-Type: application/json" https://es01:${ELASTIC_PORT}/_security/user/kibana_system/_password -d "{\"password\":\"${KIBANA_PASSWORD}\"}" | grep -q "^{}"; do sleep 10; done;
-  #       echo "es01 kibana done";
+        echo "Setting kibana_system es01 password";
+        until curl -s -X POST --cacert config/certs/ca/ca.crt -u "elastic:${ELASTIC_PASSWORD}" -H "Content-Type: application/json" https://es01:${ELASTIC_PORT}/_security/user/kibana_system/_password -d "{\"password\":\"${KIBANA_PASSWORD}\"}" | grep -q "^{}"; do sleep 10; done;
+        echo "es01 kibana done";
 
-  #       echo "Waiting for Elasticsearch ES02 availability";
-  #       until curl -s --cacert config/certs/ca/ca.crt https://es02:${ELASTIC2_PORT} | grep -q "missing authentication credentials"; do sleep 30; done;
-  #       echo "es02 done";
+        echo "Waiting for Elasticsearch ES02 availability";
+        until curl -s --cacert config/certs/ca/ca.crt https://es02:${ELASTIC2_PORT} | grep -q "missing authentication credentials"; do sleep 30; done;
+        echo "es02 done";
         
-  #       echo "Setting kibana_system es02 password";
-  #       until curl -s -X POST --cacert config/certs/ca/ca.crt -u "elastic:${ELASTIC_PASSWORD}" -H "Content-Type: application/json" https://es02:${ELASTIC2_PORT}/_security/user/kibana_system/_password -d "{\"password\":\"${KIBANA_PASSWORD}\"}" | grep -q "^{}"; do sleep 10; done;
-  #       echo "es02 kibana done";
+        echo "Setting kibana_system es02 password";
+        until curl -s -X POST --cacert config/certs/ca/ca.crt -u "elastic:${ELASTIC_PASSWORD}" -H "Content-Type: application/json" https://es02:${ELASTIC2_PORT}/_security/user/kibana_system/_password -d "{\"password\":\"${KIBANA_PASSWORD}\"}" | grep -q "^{}"; do sleep 10; done;
+        echo "es02 kibana done";
 
-  #       echo "All done!";
-  #     '
-  #   networks:
-  #     - elastic-web
-  #   healthcheck:
-  #     test: [ "CMD-SHELL", "[ -f config/certs/es01/es01.crt ]" ]
-  #     interval: 1s
-  #     timeout: 5s
-  #     retries: 120
-  #   depends_on:
-  #     - es01
-  #     - es02
-  # kibana_es01:
-  #   container_name: kibana_es01
-  #   depends_on:
-  #     - es01
-  #   image: olelarsen/kibana
-  #   build:
-  #     context: ./.docker/build/kibana/.
-  #     args:
-  #       STACK_VERSION: ${STACK_VERSION}
-  #       KIBANA_PORT: ${KIBANA_PORT}
-  #   labels:
-  #     co.elastic.logs/module: kibana
-  #   volumes:
-  #     - es01kibanalogs:/usr/share/kibana/logs
-  #     - certificates:/usr/share/kibana/config/certs:rw
-  #     - es01kibana:/usr/share/kibana/data
-  #   networks:
-  #     - elastic-web
-  #   ports:
-  #     - "${KIBANA_PORT}:5601"
-  #   environment:
-  #     - SERVERNAME=kibana_es01
-  #     - ELASTICSEARCH_HOSTS=https://es01:${ELASTIC_PORT}
-  #     - ELASTICSEARCH_USERNAME=kibana_system
-  #     - ELASTICSEARCH_PASSWORD=${KIBANA_PASSWORD}
-  #     - ELASTICSEARCH_SSL_CERTIFICATEAUTHORITIES=config/certs/ca/ca.crt
-  #     - XPACK_SECURITY_ENCRYPTIONKEY=${ENCRYPTION_KEY}
-  #     - XPACK_ENCRYPTEDSAVEDOBJECTS_ENCRYPTIONKEY=${ENCRYPTION_KEY}
-  #     - XPACK_REPORTING_ENCRYPTIONKEY=${ENCRYPTION_KEY}
-  #     - xpack.reporting.roles.enabled=false
-  #     - ELASTICSEARCH_PUBLICBASEURL=https://es01:${ELASTIC_PORT}
-  #   mem_limit: ${KB_MEM_LIMIT}
-  #   healthcheck:
-  #     test:
-  #       [
-  #         "CMD-SHELL",
-  #         "curl -s -I http://kibana_es01:${KIBANA_PORT} | grep -q 'HTTP/1.1 302 Found'"
-  #       ]
-  #     interval: 10s
-  #     timeout: 10s
-  #     retries: 120
-  # kibana_es02:
-  #   container_name: kibana_es02
-  #   depends_on:
-  #     - es02
-  #   image: olelarsen/kibana
-  #   build:
-  #     context: ./.docker/build/kibana/.
-  #     args:
-  #       STACK_VERSION: ${STACK_VERSION}
-  #       KIBANA_PORT: ${KIBANA2_PORT}
-  #   labels:
-  #     co.elastic.logs/module: kibana
-  #   volumes:
-  #     - es02kibanalogs:/usr/share/kibana/logs
-  #     - certificates:/usr/share/kibana/config/certs:rw
-  #     - es02kibana:/usr/share/kibana/data
-  #   networks:
-  #     - elastic-web
-  #   ports:
-  #     - "${KIBANA2_PORT}:5601"
-  #   environment:
-  #     - SERVERNAME=kibana_es02
-  #     - ELASTICSEARCH_HOSTS=https://es02:${ELASTIC2_PORT}
-  #     - ELASTICSEARCH_USERNAME=kibana_system
-  #     - ELASTICSEARCH_PASSWORD=${KIBANA_PASSWORD}
-  #     - ELASTICSEARCH_SSL_CERTIFICATEAUTHORITIES=config/certs/ca/ca.crt
-  #     - XPACK_SECURITY_ENCRYPTIONKEY=${ENCRYPTION_KEY}
-  #     - XPACK_ENCRYPTEDSAVEDOBJECTS_ENCRYPTIONKEY=${ENCRYPTION_KEY}
-  #     - XPACK_REPORTING_ENCRYPTIONKEY=${ENCRYPTION_KEY}
-  #     - xpack.reporting.roles.enabled=false
-  #     - ELASTICSEARCH_PUBLICBASEURL=https://es02:${ELASTIC2_PORT}
-  #   mem_limit: ${KB_MEM_LIMIT}
-  #   healthcheck:
-  #     test:
-  #       [
-  #         "CMD-SHELL",
-  #         "curl -s -I http://kibana_es02:${KIBANA_PORT} | grep -q 'HTTP/1.1 302 Found'"
-  #       ]
-  #     interval: 10s
-  #     timeout: 10s
-  #     retries: 120
+        echo "All done!";
+      '
+    networks:
+      - elastic-web
+    healthcheck:
+      test: [ "CMD-SHELL", "[ -f config/certs/es01/es01.crt ]" ]
+      interval: 1s
+      timeout: 5s
+      retries: 120
+    depends_on:
+      - es01
+      - es02
+  kibana_es01:
+    container_name: kibana_es01
+    depends_on:
+      - es01
+    image: olelarsen/kibana
+    build:
+      context: ./.docker/build/kibana/.
+      args:
+        STACK_VERSION: ${STACK_VERSION}
+        KIBANA_PORT: ${KIBANA_PORT}
+    labels:
+      co.elastic.logs/module: kibana
+    volumes:
+      - es01kibanalogs:/usr/share/kibana/logs
+      - certificates:/usr/share/kibana/config/certs:rw
+      - es01kibana:/usr/share/kibana/data
+    networks:
+      - elastic-web
+    ports:
+      - "${KIBANA_PORT}:5601"
+    environment:
+      - SERVERNAME=kibana_es01
+      - ELASTICSEARCH_HOSTS=https://es01:${ELASTIC_PORT}
+      - ELASTICSEARCH_USERNAME=kibana_system
+      - ELASTICSEARCH_PASSWORD=${KIBANA_PASSWORD}
+      - ELASTICSEARCH_SSL_CERTIFICATEAUTHORITIES=config/certs/ca/ca.crt
+      - XPACK_SECURITY_ENCRYPTIONKEY=${ENCRYPTION_KEY}
+      - XPACK_ENCRYPTEDSAVEDOBJECTS_ENCRYPTIONKEY=${ENCRYPTION_KEY}
+      - XPACK_REPORTING_ENCRYPTIONKEY=${ENCRYPTION_KEY}
+      - xpack.reporting.roles.enabled=false
+      - ELASTICSEARCH_PUBLICBASEURL=https://es01:${ELASTIC_PORT}
+    mem_limit: ${KB_MEM_LIMIT}
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "curl -s -I http://kibana_es01:${KIBANA_PORT} | grep -q 'HTTP/1.1 302 Found'"
+        ]
+      interval: 10s
+      timeout: 10s
+      retries: 120
+  kibana_es02:
+    container_name: kibana_es02
+    depends_on:
+      - es02
+    image: olelarsen/kibana
+    build:
+      context: ./.docker/build/kibana/.
+      args:
+        STACK_VERSION: ${STACK_VERSION}
+        KIBANA_PORT: ${KIBANA2_PORT}
+    labels:
+      co.elastic.logs/module: kibana
+    volumes:
+      - es02kibanalogs:/usr/share/kibana/logs
+      - certificates:/usr/share/kibana/config/certs:rw
+      - es02kibana:/usr/share/kibana/data
+    networks:
+      - elastic-web
+    ports:
+      - "${KIBANA2_PORT}:5601"
+    environment:
+      - SERVERNAME=kibana_es02
+      - ELASTICSEARCH_HOSTS=https://es02:${ELASTIC2_PORT}
+      - ELASTICSEARCH_USERNAME=kibana_system
+      - ELASTICSEARCH_PASSWORD=${KIBANA_PASSWORD}
+      - ELASTICSEARCH_SSL_CERTIFICATEAUTHORITIES=config/certs/ca/ca.crt
+      - XPACK_SECURITY_ENCRYPTIONKEY=${ENCRYPTION_KEY}
+      - XPACK_ENCRYPTEDSAVEDOBJECTS_ENCRYPTIONKEY=${ENCRYPTION_KEY}
+      - XPACK_REPORTING_ENCRYPTIONKEY=${ENCRYPTION_KEY}
+      - xpack.reporting.roles.enabled=false
+      - ELASTICSEARCH_PUBLICBASEURL=https://es02:${ELASTIC2_PORT}
+    mem_limit: ${KB_MEM_LIMIT}
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "curl -s -I http://kibana_es02:${KIBANA_PORT} | grep -q 'HTTP/1.1 302 Found'"
+        ]
+      interval: 10s
+      timeout: 10s
+      retries: 120
 volumes:
   certificates:
     driver: local # Define the driver and options under the volume name
