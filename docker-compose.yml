@@ -44,27 +44,6 @@ services:
           ls -la config/certs/es01;
         fi;
 
-        if [ ! -d "config/certs/es02" ] 
-        then
-          echo "Creating certificates es02";
-          echo -ne \
-          "instances:\n"\
-          "  - name: es02\n"\
-          "    dns:\n"\
-          "      - es02\n"\
-          "      - localhost\n"\
-          "    ip:\n"\
-          "      - 127.0.0.1\n"\
-          > config/certs/instances.yml;
-          bin/elasticsearch-certutil cert --silent --pem -out config/certs/certs.zip --in config/certs/instances.yml --ca-cert config/certs/ca/ca.crt --ca-key config/certs/ca/ca.key;
-          unzip config/certs/certs.zip -d config/certs;
-          rm -rf config/certs/certs.zip;
-          rm config/certs/instances.yml;
-          chown -R 1000:0 config/certs;
-        else
-          ls -la config/certs/es02;
-        fi;
-
         if [ ! -d "config/certs/kibana_es01" ] 
         then
           echo "Creating certificates kibana_es01";
@@ -86,27 +65,6 @@ services:
           ls -la config/certs/kibana_es01;
         fi;
 
-        if [ ! -d "config/certs/kibana_es02" ] 
-        then
-          echo "Creating certificates kibana_es02";
-          echo -ne \
-          "instances:\n"\
-          "  - name: kibana_es02\n"\
-          "    dns:\n"\
-          "      - kibana_es02\n"\
-          "      - localhost\n"\
-          "    ip:\n"\
-          "      - 127.0.0.1\n"\
-          > config/certs/instances.yml;
-          bin/elasticsearch-certutil cert --silent --pem -out config/certs/certs.zip --in config/certs/instances.yml --ca-cert config/certs/ca/ca.crt --ca-key config/certs/ca/ca.key;
-          unzip config/certs/certs.zip -d config/certs;
-          rm -rf config/certs/certs.zip;
-          rm config/certs/instances.yml;
-          chown -R 1000:0 config/certs;
-        else
-          ls -la config/certs/kibana_es02;
-        fi;
-        
         echo "done";
       '
     networks:
@@ -162,52 +120,6 @@ services:
     networks:
       - elastic-web
     restart: always
-  es02:
-    image: olelarsen/elasticsearch
-    container_name: es02
-    volumes:
-      - es02logs:/usr/share/elasticsearch/logs
-      - certificates:/usr/share/elasticsearch/config/certs
-      - es02data:/usr/share/elasticsearch/data
-    ports:
-      - ${ELASTIC2_PORT}:${ELASTIC_PORT}
-    environment:
-      - node.name=es02
-      - cluster.name=${CLUSTER_NAME}
-      - http.port=${ELASTIC_PORT}
-      - discovery.type=single-node
-      - ELASTIC_PASSWORD=${ELASTIC_PASSWORD}
-      - xpack.security.enabled=true
-      - xpack.security.enrollment.enabled=true
-      - xpack.security.http.ssl.enabled=true
-      - xpack.security.http.ssl.key=certs/es02/es02.key
-      - xpack.security.http.ssl.certificate=certs/es02/es02.crt
-      - xpack.security.http.ssl.certificate_authorities=certs/ca/ca.crt
-      - xpack.security.http.ssl.verification_mode=certificate
-      - xpack.security.transport.ssl.enabled=true
-      - xpack.security.transport.ssl.key=certs/es02/es02.key
-      - xpack.security.transport.ssl.certificate=certs/es02/es02.crt
-      - xpack.security.transport.ssl.certificate_authorities=certs/ca/ca.crt
-      - xpack.security.transport.ssl.verification_mode=certificate
-      - xpack.license.self_generated.type=${LICENSE}
-      - xpack.ml.use_auto_machine_memory_percent=true
-      - ES_JAVA_OPTS=-Xms512m -Xmx512m
-    ulimits:
-      memlock:
-        soft: -1
-        hard: -1
-    healthcheck:
-      test:
-        [
-          "CMD-SHELL",
-          "curl -s --cacert config/certs/ca/ca.crt https://es02:${ELASTIC_PORT} | grep -q 'missing authentication credentials'"
-        ]
-      interval: 10s
-      timeout: 10s
-      retries: 24
-    networks:
-      - elastic-web
-    restart: always
   elastic_credentials:
     container_name: elastic_credentials
     image: olelarsen/elastic-setup
@@ -237,14 +149,6 @@ services:
         echo "Setting kibana_system es01 password";
         until curl -s -X POST --cacert config/certs/ca/ca.crt -u "elastic:${ELASTIC_PASSWORD}" -H "Content-Type: application/json" https://es01:${ELASTIC_PORT}/_security/user/kibana_system/_password -d "{\"password\":\"${KIBANA_PASSWORD}\"}" | grep -q "^{}"; do sleep 10; done;
         echo "es01 kibana done";
-
-        echo "Waiting for Elasticsearch ES02 availability";
-        until curl -s --cacert config/certs/ca/ca.crt https://es02:${ELASTIC_PORT} | grep -q "missing authentication credentials"; do sleep 30; done;
-        echo "es02 done";
-
-        echo "Setting kibana_system es02 password";
-        until curl -s -X POST --cacert config/certs/ca/ca.crt -u "elastic:${ELASTIC_PASSWORD}" -H "Content-Type: application/json" https://es02:${ELASTIC_PORT}/_security/user/kibana_system/_password -d "{\"password\":\"${KIBANA_PASSWORD}\"}" | grep -q "^{}"; do sleep 10; done;
-        echo "es02 kibana done";
 
         echo "All done!";
       '
@@ -300,46 +204,6 @@ services:
       timeout: 10s
       retries: 120
     restart: always
-  kibana_es02:
-    container_name: kibana_es02
-    depends_on:
-      - es02
-    image: olelarsen/kibana
-    build:
-      context: ./.docker/build/kibana/.
-      args:
-        STACK_VERSION: ${STACK_VERSION}
-        KIBANA_PORT: ${KIBANA_PORT}
-    volumes:
-      - es02kibanalogs:/usr/share/kibana/logs
-      - certificates:/usr/share/kibana/config/certs:rw
-      - es02kibana:/usr/share/kibana/data
-    ports:
-      - ${KIBANA2_PORT}:5601
-    networks:
-      - elastic-web
-    environment:
-      - SERVERNAME=kibana_es02
-      - ELASTICSEARCH_HOSTS=https://es02:${ELASTIC_PORT}
-      - ELASTICSEARCH_USERNAME=kibana_system
-      - ELASTICSEARCH_PASSWORD=${KIBANA_PASSWORD}
-      - ELASTICSEARCH_SSL_CERTIFICATEAUTHORITIES=config/certs/ca/ca.crt
-      - XPACK_SECURITY_ENCRYPTIONKEY=${ENCRYPTION_KEY}
-      - XPACK_ENCRYPTEDSAVEDOBJECTS_ENCRYPTIONKEY=${ENCRYPTION_KEY}
-      - XPACK_REPORTING_ENCRYPTIONKEY=${ENCRYPTION_KEY}
-      - xpack.reporting.roles.enabled=false
-      - ELASTICSEARCH_PUBLICBASEURL=https://es02:${ELASTIC_PORT}
-    mem_limit: ${KB_MEM_LIMIT}
-    healthcheck:
-      test:
-        [
-          "CMD-SHELL",
-          "curl -s -I http://kibana_es02:5601 | grep -q 'HTTP/1.1 302 Found'",
-        ]
-      interval: 10s
-      timeout: 10s
-      retries: 20
-    restart: always
 volumes:
   certificates:
     driver: local # Define the driver and options under the volume name
@@ -359,18 +223,6 @@ volumes:
       type: none
       device: ./.docker/logs/elasticsearch/es01
       o: bind
-  es02data:
-    driver: local # Define the driver and options under the volume name
-    driver_opts:
-      type: none
-      device: ./.docker/data/elasticsearch/es02
-      o: bind
-  es02logs:
-    driver: local # Define the driver and options under the volume name
-    driver_opts:
-      type: none
-      device: ./.docker/logs/elasticsearch/es02
-      o: bind
   es01kibana:
     driver: local # Define the driver and options under the volume name
     driver_opts:
@@ -383,19 +235,6 @@ volumes:
       type: none
       device: ./.docker/logs/kibana/es01
       o: bind
-  es02kibana:
-    driver: local # Define the driver and options under the volume name
-    driver_opts:
-      type: none
-      device: ./.docker/data/kibana/es02
-      o: bind
-  es02kibanalogs:
-    driver: local # Define the driver and options under the volume name
-    driver_opts:
-      type: none
-      device: ./.docker/logs/kibana/es02
-      o: bind
-  
 networks:
   elastic-web:
     name: elastic-web
