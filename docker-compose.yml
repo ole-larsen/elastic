@@ -161,6 +161,7 @@ services:
       retries: 24
     networks:
       - elastic-web
+    restart: always
   es02:
     image: olelarsen/elasticsearch
     container_name: es02
@@ -206,6 +207,7 @@ services:
       retries: 24
     networks:
       - elastic-web
+    restart: always
   elastic_credentials:
     container_name: elastic_credentials
     image: olelarsen/elastic-setup
@@ -297,6 +299,7 @@ services:
       interval: 10s
       timeout: 10s
       retries: 120
+    restart: always
   kibana_es02:
     container_name: kibana_es02
     depends_on:
@@ -336,6 +339,7 @@ services:
       interval: 10s
       timeout: 10s
       retries: 20
+    restart: always
 volumes:
   certificates:
     driver: local # Define the driver and options under the volume name
