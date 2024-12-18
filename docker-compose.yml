@@ -161,7 +161,6 @@ services:
       retries: 120
     depends_on:
       - es01
-      - es02
   kibana_es01:
     container_name: kibana_es01
     depends_on:
